@@ -74,5 +74,4 @@ func readHeader(absolutePath string) {
 		fmt.Printf("Header: %d\n", header)
 		fmt.Printf("Header: %x\n", bytes)
 	}
-
 }
