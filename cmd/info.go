@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -56,4 +57,22 @@ func runInfo(cmd *cobra.Command, args []string) {
 
 func readHeader(absolutePath string) {
 	fmt.Printf("Filepath is: %s\n", absolutePath)
+
+	headerMagic := 32
+
+	bytes := make([]byte, headerMagic)
+	file, err := os.Open(absolutePath)
+	if err != nil {
+		fmt.Printf("cound not open the file: %s\n", err)
+	} else {
+		fmt.Printf("opened the file\n")
+	}
+	header, err := file.ReadAt(bytes, 0)
+	if err != nil {
+		fmt.Printf("could not read the file: %s\n", err)
+	} else {
+		fmt.Printf("Header: %d\n", header)
+		fmt.Printf("Header: %x\n", bytes)
+	}
+
 }
