@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -65,42 +66,45 @@ func readHeader(absolutePath string) {
 	if err != nil {
 		fmt.Printf("cound not open the file: %s\n", err)
 	} else {
-		fmt.Printf("opened the file\n")
+		// fmt.Printf("opened the file\n")
 	}
 	header, err := file.ReadAt(bytes, 0)
 	if err != nil {
 		fmt.Printf("could not read the file: %s\n", err)
 	} else {
 		fmt.Printf("Header: %d\n", header)
-		fmt.Printf("Header: %x\n", bytes)
+		// fmt.Printf("Header: %x\n", bytes)
 		getHeaderInfo(bytes)
 	}
 }
 
 func getHeaderInfo(hexHeader []byte) {
-	magic := hexHeader[0:8]
-	version := hexHeader[8:16]
-	compression_type := hexHeader[16:24]
-	toc_length := hexHeader[24:32]
-	toc_entry_size := hexHeader[32:40]
-	toc_entries := hexHeader[40:48]
-	block_size := hexHeader[48:56]
-	archive_flags := hexHeader[56:64]
+	magic := hexHeader[0:4]
+	versionMajor := hexHeader[4:6]
+	versionMinor := hexHeader[6:8]
+	compression_type := hexHeader[8:12]
+	toc_length := hexHeader[12:16]
+	toc_entry_size := hexHeader[16:20]
+	toc_entries := hexHeader[20:24]
+	block_size := hexHeader[24:28]
+	archive_flags := hexHeader[28:32]
 
-	fmt.Printf("Magic: %s\n
-				Version: %s\n
-				Compression type: %s\n
-				TOC length: %x\n
-				TOC entry size: %d bytes\n
-				TOC entries: 1 manifest + %d files\n
-				Block size: %d\n
-				archive flags: %d\n",
-				string(magic),
-				string(version),
-				string(compression_type),
-				hex(toc_entry_size),
-				int32(toc_entries),
-				int32(block_size),
-				int32(archive_flags)
-			)
+	fmt.Printf(
+		`Magic: %s
+Version: v%d.%d
+Compression type: %s
+TOC length: %d
+TOC entry size: %d bytes
+TOC entries: 1 manifest + %d files
+Block size: %d
+archive flags: %d`,
+		string(magic),
+		versionMajor[1],
+		versionMinor[1],
+		string(compression_type),
+		binary.BigEndian.Uint32(toc_length),
+		binary.BigEndian.Uint16(toc_entry_size),
+		binary.BigEndian.Uint32(toc_entries)-1,
+		binary.BigEndian.Uint32(block_size),
+		binary.BigEndian.Uint16(archive_flags))
 }
