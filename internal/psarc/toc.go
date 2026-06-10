@@ -1,6 +1,9 @@
 package psarc
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
 func readUint40BE(data []byte) uint64 {
 	return uint64(data[0])<<32 |
@@ -20,6 +23,9 @@ func GetTOCInfo(hexTOC []byte, tocEntrySize int, tocEntries int) {
 	if entries <= 0 {
 		entries = len(hexTOC) / tocEntrySize
 	}
+	if maxEntries := len(hexTOC) / tocEntrySize; entries > maxEntries {
+		entries = maxEntries
+	}
 	fixedBytes := entries * tocEntrySize
 	if fixedBytes > len(hexTOC) {
 		fixedBytes = len(hexTOC)
@@ -30,7 +36,7 @@ func GetTOCInfo(hexTOC []byte, tocEntrySize int, tocEntries int) {
 	fmt.Printf("TOC entry size: %d bytes\n", tocEntrySize)
 	fmt.Printf("Parsed entries: %d\n", entries)
 	if remainder != 0 {
-		fmt.Printf("Trailing TOC bytes after fixed entries: %d\n", remainder)
+		fmt.Printf("Trailing block table bytes: %d\n", remainder)
 	}
 
 	if entries == 0 {
@@ -46,10 +52,11 @@ func GetTOCInfo(hexTOC []byte, tocEntrySize int, tocEntries int) {
 			continue
 		}
 
-		hash := entry[:20]
-		offset := readUint40BE(entry[20:25])
-		size := readUint40BE(entry[25:30])
+		digest := entry[:16]
+		zIndex := binary.BigEndian.Uint32(entry[16:20])
+		length := readUint40BE(entry[20:25])
+		offset := readUint40BE(entry[25:30])
 
-		fmt.Printf("%03d: hash=%x offset=%d size=%d\n", i, hash, offset, size)
+		fmt.Printf("%03d: md5=%x zIndex=%d length=%d offset=%d\n", i, digest, zIndex, length, offset)
 	}
 }
