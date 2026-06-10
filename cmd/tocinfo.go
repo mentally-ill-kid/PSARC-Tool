@@ -23,12 +23,18 @@ func tocInfo(cmd *cobra.Command, args []string) {
 	absPath, err := psarc.FindArchive(pathToFile)
 	if err != nil {
 		fmt.Printf("Could not find file: %s", err)
+		return
 	}
 	headerBytes, err := psarc.ReadHeader(absPath)
 	if err != nil {
 		fmt.Printf("Could not read file")
+		return
 	}
-	toc_size, toc_entry_size := psarc.GetTOCSize(headerBytes)
-	TOCbytes, err := psarc.ReadTOC(absPath, toc_size)
-	psarc.GetTOCInfo(TOCbytes, toc_entry_size)
+	tocSize, tocEntrySize, tocEntries := psarc.GetTOCSize(headerBytes)
+	TOCbytes, err := psarc.ReadTOC(absPath, tocSize)
+	if err != nil {
+		fmt.Printf("Could not read TOC: %s", err)
+		return
+	}
+	psarc.GetTOCInfo(TOCbytes, tocEntrySize, tocEntries)
 }

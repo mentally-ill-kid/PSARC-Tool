@@ -36,10 +36,10 @@ archive flags: %d`,
 		archive_flags)
 }
 
-func GetTOCSize(hexHeader []byte) (int, int) {
+func GetTOCSize(hexHeader []byte) (int, int, int) {
+	toc_length := binary.BigEndian.Uint32(hexHeader[12:16])
 	toc_entry_size := binary.BigEndian.Uint32(hexHeader[16:20])
 	toc_entries := binary.BigEndian.Uint32(hexHeader[20:24])
 
-	// tocInfo := []int{int(toc_length), int(toc_entry_size), int(toc_entries)}
-	return int(toc_entry_size) * int(toc_entries), int(toc_entry_size)
+	return int(toc_length), int(toc_entry_size), int(toc_entries)
 }
