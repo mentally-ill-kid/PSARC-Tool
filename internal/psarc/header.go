@@ -10,7 +10,7 @@ func GetHeaderInfo(hexHeader []byte) {
 	versionMajor := hexHeader[4:6]
 	versionMinor := hexHeader[6:8]
 	compression_type := hexHeader[8:12]
-	toc_length := hexHeader[12:16]
+	toc_length := binary.BigEndian.Uint32(hexHeader[12:16])
 	toc_entry_size := binary.BigEndian.Uint32(hexHeader[16:20])
 	toc_entries := binary.BigEndian.Uint32(hexHeader[20:24])
 	block_size := binary.BigEndian.Uint32(hexHeader[24:28])
@@ -29,9 +29,17 @@ archive flags: %d`,
 		versionMajor[1],
 		versionMinor[1],
 		string(compression_type),
-		binary.BigEndian.Uint32(toc_length),
+		toc_length,
 		toc_entry_size,
 		toc_entries-1,
 		block_size,
 		archive_flags)
+}
+
+func GetTOCSize(hexHeader []byte) (int, int, int) {
+	toc_length := binary.BigEndian.Uint32(hexHeader[12:16])
+	toc_entry_size := binary.BigEndian.Uint32(hexHeader[16:20])
+	toc_entries := binary.BigEndian.Uint32(hexHeader[20:24])
+
+	return int(toc_length), int(toc_entry_size), int(toc_entries)
 }
