@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"encoding/binary"
 	"fmt"
-	"os"
-	"path/filepath"
 
+	"github.com/mentally-ill-kid/PSARC-Tool/internal/psarc"
 	"github.com/spf13/cobra"
 )
 
@@ -22,89 +20,10 @@ func init() {
 
 func runInfo(cmd *cobra.Command, args []string) {
 	pathToFile, _ := cmd.Flags().GetString("path")
-
-	var pattern string
-	if pathToFile == "" {
-		pattern = "*.psarc"
-	} else {
-		pattern = filepath.Join(pathToFile, "*.psarc")
-	}
-
-	matches, err := filepath.Glob(pattern)
+	absPath, err := psarc.FindArchive(pathToFile)
 	if err != nil {
-		fmt.Printf("Error searching for files: %v\n", err)
-		return
+		fmt.Printf("Encountered error: %s", err)
 	}
-
-	if len(matches) == 0 {
-		if pathToFile == "" {
-			fmt.Println("Could not find psarc file in current directory")
-		} else {
-			fmt.Printf("Could not find psarc file in %s\n", pathToFile)
-		}
-		return
-	}
-
-	for _, match := range matches {
-		absPath, err := filepath.Abs(match)
-		if err != nil {
-			fmt.Printf("Error resolving path %s: %v\n", match, err)
-			continue
-		}
-		fmt.Printf("File has been located: %s\n", absPath)
-		readHeader(absPath)
-	}
-}
-
-func readHeader(absolutePath string) {
-	fmt.Printf("Filepath is: %s\n", absolutePath)
-
-	headerMagic := 32
-
-	bytes := make([]byte, headerMagic)
-	file, err := os.Open(absolutePath)
-	if err != nil {
-		fmt.Printf("cound not open the file: %s\n", err)
-	} else {
-		// fmt.Printf("opened the file\n")
-	}
-	header, err := file.ReadAt(bytes, 0)
-	if err != nil {
-		fmt.Printf("could not read the file: %s\n", err)
-	} else {
-		fmt.Printf("Header: %d\n", header)
-		// fmt.Printf("Header: %x\n", bytes)
-		getHeaderInfo(bytes)
-	}
-}
-
-func getHeaderInfo(hexHeader []byte) {
-	magic := hexHeader[0:4]
-	versionMajor := hexHeader[4:6]
-	versionMinor := hexHeader[6:8]
-	compression_type := hexHeader[8:12]
-	toc_length := hexHeader[12:16]
-	toc_entry_size := binary.BigEndian.Uint32(hexHeader[16:20])
-	toc_entries := binary.BigEndian.Uint32(hexHeader[20:24])
-	block_size := binary.BigEndian.Uint32(hexHeader[24:28])
-	archive_flags := binary.BigEndian.Uint32(hexHeader[28:32])
-
-	fmt.Printf(
-		`Magic: %s
-Version: v%d.%d
-Compression type: %s
-TOC length: %d
-TOC entry size: %d bytes
-TOC entries: 1 manifest + %d files
-Block size: %d
-archive flags: %d`,
-		string(magic),
-		versionMajor[1],
-		versionMinor[1],
-		string(compression_type),
-		binary.BigEndian.Uint32(toc_length),
-		toc_entry_size,
-		toc_entries-1,
-		block_size,
-		archive_flags)
+	bytes, err := psarc.ReadHeader(absPath)
+	psarc.GetHeaderInfo(bytes)
 }
