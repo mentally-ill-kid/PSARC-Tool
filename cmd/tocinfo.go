@@ -29,6 +29,6 @@ func tocInfo(cmd *cobra.Command, args []string) {
 		fmt.Printf("Could not read file")
 	}
 	toc_size, toc_entry_size := psarc.GetTOCSize(headerBytes)
-	TOCbytes, err := psarc.ReadTOC(pathToFile, toc_size)
+	TOCbytes, err := psarc.ReadTOC(absPath, toc_size)
 	psarc.GetTOCInfo(TOCbytes, toc_entry_size)
 }
