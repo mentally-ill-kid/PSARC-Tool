@@ -73,5 +73,34 @@ func readHeader(absolutePath string) {
 	} else {
 		fmt.Printf("Header: %d\n", header)
 		fmt.Printf("Header: %x\n", bytes)
+		getHeaderInfo(bytes)
 	}
+}
+
+func getHeaderInfo(hexHeader []byte) {
+	magic := hexHeader[0:8]
+	version := hexHeader[8:16]
+	compression_type := hexHeader[16:24]
+	toc_length := hexHeader[24:32]
+	toc_entry_size := hexHeader[32:40]
+	toc_entries := hexHeader[40:48]
+	block_size := hexHeader[48:56]
+	archive_flags := hexHeader[56:64]
+
+	fmt.Printf("Magic: %s\n
+				Version: %s\n
+				Compression type: %s\n
+				TOC length: %x\n
+				TOC entry size: %d bytes\n
+				TOC entries: 1 manifest + %d files\n
+				Block size: %d\n
+				archive flags: %d\n",
+				string(magic),
+				string(version),
+				string(compression_type),
+				hex(toc_entry_size),
+				int32(toc_entries),
+				int32(block_size),
+				int32(archive_flags)
+			)
 }
