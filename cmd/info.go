@@ -84,10 +84,10 @@ func getHeaderInfo(hexHeader []byte) {
 	versionMinor := hexHeader[6:8]
 	compression_type := hexHeader[8:12]
 	toc_length := hexHeader[12:16]
-	toc_entry_size := hexHeader[16:20]
-	toc_entries := hexHeader[20:24]
-	block_size := hexHeader[24:28]
-	archive_flags := hexHeader[28:32]
+	toc_entry_size := binary.BigEndian.Uint32(hexHeader[16:20])
+	toc_entries := binary.BigEndian.Uint32(hexHeader[20:24])
+	block_size := binary.BigEndian.Uint32(hexHeader[24:28])
+	archive_flags := binary.BigEndian.Uint32(hexHeader[28:32])
 
 	fmt.Printf(
 		`Magic: %s
@@ -103,8 +103,8 @@ archive flags: %d`,
 		versionMinor[1],
 		string(compression_type),
 		binary.BigEndian.Uint32(toc_length),
-		binary.BigEndian.Uint16(toc_entry_size),
-		binary.BigEndian.Uint32(toc_entries)-1,
-		binary.BigEndian.Uint32(block_size),
-		binary.BigEndian.Uint16(archive_flags))
+		toc_entry_size,
+		toc_entries-1,
+		block_size,
+		archive_flags)
 }
