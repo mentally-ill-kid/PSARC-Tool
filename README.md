@@ -25,4 +25,4 @@ Contributions are **very** welcome! Feel free to fork and submit your PRs
 ## Tested on
 
 PSARC-Tool was tested **ONLY** on [InFamous](https://en.wikipedia.org/wiki/Infamous_(video_game)) dump.
-COMPATIBILITY ON OTHER TITLES NOT GUARANTEED
+COMPATIBILITY WITH OTHER TITLES NOT GUARANTEED
