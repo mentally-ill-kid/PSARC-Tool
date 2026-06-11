@@ -23,7 +23,12 @@ func runInfo(cmd *cobra.Command, args []string) {
 	absPath, err := psarc.FindArchive(pathToFile)
 	if err != nil {
 		fmt.Printf("Encountered error: %s", err)
+		return
 	}
 	bytes, err := psarc.ReadHeader(absPath)
+	if err != nil {
+		fmt.Printf("Could not read file: %s", err)
+		return
+	}
 	psarc.GetHeaderInfo(bytes)
 }

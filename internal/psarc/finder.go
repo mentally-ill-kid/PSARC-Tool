@@ -2,10 +2,20 @@ package psarc
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 )
 
 func FindArchive(pathToFile string) (string, error) {
+	if pathToFile != "" {
+		if info, err := os.Stat(pathToFile); err == nil && !info.IsDir() {
+			absPath, absErr := filepath.Abs(pathToFile)
+			if absErr != nil {
+				return "", absErr
+			}
+			return absPath, nil
+		}
+	}
 
 	var pattern string
 	if pathToFile == "" {
@@ -35,7 +45,7 @@ func FindArchive(pathToFile string) (string, error) {
 			continue
 		}
 		fmt.Printf("File has been located: %s\n", absPath)
-		return absPath, err
+		return absPath, nil
 	}
 	return "", err
 }

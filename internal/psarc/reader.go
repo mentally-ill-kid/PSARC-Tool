@@ -1,7 +1,9 @@
 package psarc
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -11,32 +13,61 @@ func ReadHeader(pathToFile string) ([]byte, error) {
 	bytes := make([]byte, headerSize)
 	file, err := os.Open(pathToFile)
 	if err != nil {
-		fmt.Printf("could not open the file: %s\n", err)
-	} else {
-		// fmt.Printf("opened the file\n")
+		return nil, err
 	}
+	defer file.Close()
+
 	header, err := file.ReadAt(bytes, 0)
-	if err != nil || header != headerSize {
-		fmt.Printf("could not read the file: %s\n", err)
-	} else {
-		fmt.Printf("Header: %d\n", header)
-		// fmt.Printf("Header: %x\n", bytes)
-		return bytes, nil
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	if header != headerSize {
+		return nil, io.ErrUnexpectedEOF
+	}
+	fmt.Printf("Header: %d\n", header)
+	return bytes, nil
 }
 
 func ReadTOC(pathToFile string, TOCsize int) ([]byte, error) {
-	bytes := make([]byte, TOCsize)
+	if TOCsize < 32 {
+		return nil, errors.New("invalid TOC size")
+	}
+
+	bytes := make([]byte, TOCsize-32)
 	file, err := os.Open(pathToFile)
 	if err != nil {
-		fmt.Printf("Could not open the file: %s", err)
+		return nil, err
 	}
-	TOC, err := file.ReadAt(bytes, 32) //32 -TOC beginning
-	if err != nil || TOC != TOCsize {
-		fmt.Printf("Could not read the file: %s", err)
-	} else {
-		return bytes, err
+	defer file.Close()
+
+	TOC, err := file.ReadAt(bytes, 32)
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	if TOC != len(bytes) {
+		return nil, io.ErrUnexpectedEOF
+	}
+	return bytes, nil
+}
+
+func ReadBytesAt(pathToFile string, offset int64, length int64) ([]byte, error) {
+	if length < 0 {
+		return nil, errors.New("invalid length")
+	}
+
+	bytes := make([]byte, int(length))
+	file, err := os.Open(pathToFile)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	read, err := file.ReadAt(bytes, offset)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return nil, err
+	}
+	if read != int(length) {
+		return nil, io.ErrUnexpectedEOF
+	}
+	return bytes, nil
 }
