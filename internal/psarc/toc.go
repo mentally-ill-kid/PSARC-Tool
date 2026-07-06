@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"os"
 )
 
 type TOCEntry struct {
@@ -55,7 +56,7 @@ func ParseTOCEntries(hexTOC []byte, tocEntrySize int, tocEntries int) ([]TOCEntr
 	return parsed, nil
 }
 
-func GetTOCInfo(hexTOC []byte, tocEntrySize int, tocEntries int) {
+func GetTOCInfo(hexTOC []byte, tocEntrySize int, tocEntries int, isWritable bool) {
 	entries, err := ParseTOCEntries(hexTOC, tocEntrySize, tocEntries)
 	if err != nil {
 		fmt.Println(err)
@@ -80,7 +81,25 @@ func GetTOCInfo(hexTOC []byte, tocEntrySize int, tocEntries int) {
 	}
 
 	fmt.Println("Entries:")
-	for i, entry := range entries {
-		fmt.Printf("%03d: md5=%x zIndex=%d length=%d offset=%d\n", i, entry.Digest, entry.ZIndex, entry.Length, entry.Offset)
+	if isWritable != true {
+		for i, entry := range entries {
+			fmt.Printf("%03d: md5=%x zIndex=%d length=%d offset=%d\n", i, entry.Digest, entry.ZIndex, entry.Length, entry.Offset)
+		}
+	} else {
+		file, err := os.Create("extractedTOC.txt")
+		if err != nil {
+			fmt.Print(err)
+			return
+		}
+		defer file.Close()
+
+		for i, entry := range entries {
+			line := fmt.Sprintf("%03d: md5=%x zIndex=%d length=%d offset=%d\n", i, entry.Digest, entry.ZIndex, entry.Length, entry.Offset)
+			_, err := file.WriteString(line)
+			if err != nil {
+				fmt.Print(err)
+				return
+			}
+		}
 	}
 }

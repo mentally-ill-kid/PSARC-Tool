@@ -16,10 +16,12 @@ var tocCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(tocCmd)
 	tocCmd.Flags().StringP("path", "p", "", "path to directory containing PSARC archive")
+	tocCmd.Flags().BoolP("write", "w", false, "write ToC into file")
 }
 
 func tocInfo(cmd *cobra.Command, args []string) {
 	pathToFile, _ := cmd.Flags().GetString("path")
+	isWritable, _ := cmd.Flags().GetBool("write")
 	absPath, err := psarc.FindArchive(pathToFile)
 	if err != nil {
 		fmt.Printf("Could not find file: %s", err)
@@ -36,5 +38,5 @@ func tocInfo(cmd *cobra.Command, args []string) {
 		fmt.Printf("Could not read TOC: %s", err)
 		return
 	}
-	psarc.GetTOCInfo(TOCbytes, tocEntrySize, tocEntries)
+	psarc.GetTOCInfo(TOCbytes, tocEntrySize, tocEntries, isWritable)
 }
