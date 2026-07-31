@@ -17,28 +17,33 @@ func FindArchive(pathToFile string) (string, error) {
 		}
 	}
 
-	var pattern string
+	var patterns []string
 	if pathToFile == "" {
-		pattern = "*.psarc"
+		patterns = []string{"*.psarc", "*.psarc_s"}
 	} else {
-		pattern = filepath.Join(pathToFile, "*.psarc")
-	}
-
-	matches, err := filepath.Glob(pattern)
-	if err != nil {
-		return "", err
-	}
-
-	if len(matches) == 0 {
-		if pathToFile == "" {
-			fmt.Println("Could not find psarc file in current directory")
-		} else {
-			fmt.Printf("Could not find psarc file in %s\n", pathToFile)
+		patterns = []string{
+			filepath.Join(pathToFile, "*.psarc"),
+			filepath.Join(pathToFile, "*.psarc_s"),
 		}
-		return "", err
 	}
 
-	for _, match := range matches {
+	var allMatches []string
+	for _, pattern := range patterns {
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			return "", fmt.Errorf("error searching for pattern %s: %w", pattern, err)
+		}
+		allMatches = append(allMatches, matches...)
+	}
+
+	if len(allMatches) == 0 {
+		if pathToFile == "" {
+			return "", fmt.Errorf("could not find psarc file in current directory")
+		}
+		return "", fmt.Errorf("could not find psarc file in %s", pathToFile)
+	}
+
+	for _, match := range allMatches {
 		absPath, err := filepath.Abs(match)
 		if err != nil {
 			fmt.Printf("Error resolving path %s: %v\n", match, err)
@@ -47,5 +52,6 @@ func FindArchive(pathToFile string) (string, error) {
 		fmt.Printf("File has been located: %s\n", absPath)
 		return absPath, nil
 	}
-	return "", err
+
+	return "", fmt.Errorf("no valid files found")
 }
