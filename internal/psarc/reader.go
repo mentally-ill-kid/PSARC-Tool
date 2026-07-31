@@ -2,7 +2,6 @@ package psarc
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"os"
 )
@@ -24,7 +23,6 @@ func ReadHeader(pathToFile string) ([]byte, error) {
 	if header != headerSize {
 		return nil, io.ErrUnexpectedEOF
 	}
-	fmt.Printf("Header: %d\n", header)
 	return bytes, nil
 }
 
